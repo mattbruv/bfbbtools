@@ -1,5 +1,5 @@
 
-illegalChars = "<>,"
+illegalChars = "<>,@"
 
 def getSymbols():
     f = open("symbols.txt").readlines()
