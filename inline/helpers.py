@@ -1,5 +1,6 @@
 import re
 from sanitize import desanitize
+from files import getAsmFiles
 
 labelRegex = r".+:"
 
@@ -93,3 +94,53 @@ def blockToCPP(name, block):
             code += b + "\n"
     code += "}\n"
     return code
+
+def getSource(name):
+    files = list(filter(lambda x: name.lower() in x.name.lower(), getAsmFiles()))
+    if len(files) > 1:
+        print("Error: Ambiguous filename:", name)
+        print("Please specify filename in greater detail.")
+        for f in files:
+            print(f)
+        quit()
+    if len(files) == 0:
+        print("Error: No files including", name)
+        quit()
+    return files[0]
+
+
+def filterBlockCode(block):
+    return list(filter(lambda x: "/*" in x, block))
+
+def codeLineToBytes(line):
+    d = line.split()
+    b = "0x" + "".join(d[3:7])
+    return b
+
+def blockToBytes(block):
+    code = filterBlockCode(block)
+    return list(map(codeLineToBytes, code))
+
+funcTemplate = """asm void {name}() {
+    nofralloc
+    {data}
+}"""
+
+def writeFunctions(source, funcList):
+    source += """extern "C" {\n"""
+    for f in funcList:
+        source += "    void " + f + "();\n"
+    source += "}\n"
+    return source
+
+def bytesToString(byteLine):
+    return "opword" + " " + byteLine
+
+def writeCode(source, funcName, byteLines):
+    source += "\n"
+    t = funcTemplate.replace("{name}", funcName)
+    bs = list(map(bytesToString, byteLines))
+    t = t.replace("{data}", "\n    ".join(bs))
+    source += t + "\n"
+
+    return source
