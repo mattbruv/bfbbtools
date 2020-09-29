@@ -18,7 +18,7 @@ def getAsmFunctionBlock(fileText, label):
     data = []
     found = False
     for line in fileText.splitlines():
-        if label in line:
+        if label + ":" in line:
             found = True
             continue
         if found:
