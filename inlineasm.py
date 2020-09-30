@@ -2,6 +2,7 @@ import argparse
 from files import getAsmFiles
 from inline.helpers import *
 from path import asmToSrcPath
+import json
 
 desc = "Automatically move and inline assembly into CPP files"
 parser = argparse.ArgumentParser(description=desc)
@@ -21,8 +22,12 @@ def getSource(name):
         quit()
     return files[0]
 
+typeList = json.loads(open("types.json").read())
+
 def format(c, f, path):
     c += "\n"
+    if f in typeList:
+        c+= "// " + typeList[f] + "\n"
     c += "#pragma GLOBAL_ASM(\"" + path + "\", \""
     c += f + "\")\n"
     return c
@@ -41,6 +46,6 @@ def run():
         p = str(sourceFile)[14::].replace('\\', '/')
         code = format(code, f.replace(':', ''), p)
         pass
-    open(out, "w").write(code)
+    open(out, "w", newline='').write(code)
 
 run()
