@@ -6,10 +6,7 @@ from inline.helpers import getAsmFunctions
 
 asmFiles = getAsmFiles()
 
-funcDict = {}
-
-#print(demangleFunction("YUV_blit__FPvUlUlUlT0UlUlUlUlUlUlUlT0P5BLITS"))
-#exit(1)
+funcDict = json.loads(open("demangled.json").read())
 i = 0
 
 for f in asmFiles:
@@ -21,6 +18,8 @@ for f in asmFiles:
     print(f, len(fs), "functions")
     for func in fs:
         func = func.replace(":", "")
+        if func in funcDict:
+            continue
         realname = None
         try:
             realname = demangleFunction(func)
@@ -28,5 +27,6 @@ for f in asmFiles:
             realname = None
         if func not in funcDict and realname != None and func != realname:
             funcDict[func] = realname
+            print(func, realname)
 
 open("demangled.json", "w").write(json.dumps(funcDict, indent=4))

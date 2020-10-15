@@ -8,7 +8,7 @@ asmTemplate = """
         bl {func}
 """
 
-regex = re.compile(r"multiply-defined:\s'(.*)'\sin\s", re.DOTALL)
+regex = re.compile(r"multiply-defined:\s'(.*)'(?:.*?)\sin\s", re.DOTALL)
 
 ass = ["../bfbbdecomp/tools/mwcc_compiler/2.7/mwasmeppc.exe"]
 ld = ["../bfbbdecomp/tools/mwcc_compiler/2.7/mwldeppc.exe"]
@@ -53,6 +53,10 @@ def demangleFunction(functionName):
     process = subprocess.Popen(ld + ["test1.o", "test2.o"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = process.communicate()
     output = out.decode("utf-8")
-    name = regex.findall(output)[0]
-    name = defuckify(name)
+    name = regex.findall(output)
+    if len(name) == 0:
+        return None
+    name = defuckify(name[0])
     return name
+
+#print(demangleFunction("xAnimTableAddFile__FP10xAnimTableP9xAnimFilePCc"))
