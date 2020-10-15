@@ -8,7 +8,7 @@ asmTemplate = """
         bl {func}
 """
 
-regex = re.compile(r"multiply-defined:\s'(.*)'(?:.*?)\sin\s", re.DOTALL)
+regex = re.compile(r"multiply-defined:(?:.*?)'(.*)'(?:.*?)in", re.DOTALL)
 
 ass = ["../bfbbdecomp/tools/mwcc_compiler/2.7/mwasmeppc.exe"]
 ld = ["../bfbbdecomp/tools/mwcc_compiler/2.7/mwldeppc.exe"]
@@ -42,9 +42,24 @@ def defuckify(name):
     #res = res.replace(",", ", ")
     return res
 
+def escapeName(functionName):
+    sub = [
+        ('<',  '_esc__0_'),
+        ('>',  '_esc__1_'),
+        ('@',  '_esc__2_'),
+        ('\\', '_esc__3_'),
+        (',',  '_esc__4_'),
+        ('-',  '_esc__5_')
+    ]
+    for s in sub:
+        functionName = functionName.replace(s[1], s[0])
+    return functionName
+
 def demangleFunction(functionName):
-    #print()
     #print("DEMANGLE:", functionName)
+    if functionName != escapeName(functionName):
+        return None
+    #functionName = escapeName(functionName)
     asm = asmTemplate.replace("{func}", functionName)
     open("test1.s", "w").write(asm)
     open("test2.s", "w").write(asm)
@@ -53,10 +68,11 @@ def demangleFunction(functionName):
     process = subprocess.Popen(ld + ["test1.o", "test2.o"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = process.communicate()
     output = out.decode("utf-8")
+    #print(output)
     name = regex.findall(output)
     if len(name) == 0:
         return None
     name = defuckify(name[0])
     return name
 
-#print(demangleFunction("xAnimTableAddFile__FP10xAnimTableP9xAnimFilePCc"))
+#print(demangleFunction("zSaveLoad_CardCheckSpaceSingle_doCheck__FP17st_XSAVEGAME_DATAi"))

@@ -20,6 +20,8 @@ for f in asmFiles:
         func = func.replace(":", "")
         if func in funcDict:
             continue
+        #    print(func)
+        #continue
         realname = None
         try:
             realname = demangleFunction(func)
@@ -27,6 +29,6 @@ for f in asmFiles:
             realname = None
         if func not in funcDict and realname != None and func != realname:
             funcDict[func] = realname
-            print(func, realname)
+            print(realname)
 
-open("demangled.json", "w").write(json.dumps(funcDict, indent=4))
+open("demangledplus.json", "w").write(json.dumps(funcDict, indent=4))
