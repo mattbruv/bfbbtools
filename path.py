@@ -1,6 +1,7 @@
 
 path = "../bfbbdecomp/"
 pathASM = path + "asm/"
+pathCPP = path + "src/"
 
 def asmToSrcPath(asmPath):
     path = asmPath.replace("\\asm\\", "\\src\\")
