@@ -15,7 +15,6 @@ def updateMake(path):
         if path.name.replace(".s", ".o") in line:
             add = line.replace("asm/", "src/")
             makeText[i] = line + add
-            print(line)
     open(makePath, "w").writelines(makeText)
 
 def processFile(path):

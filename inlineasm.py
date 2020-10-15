@@ -3,6 +3,7 @@ from files import getAsmFiles
 from inline.helpers import *
 from path import asmToSrcPath
 import json
+from demangle import demangleFunction
 
 desc = "Automatically move and inline assembly into CPP files"
 parser = argparse.ArgumentParser(description=desc)
@@ -26,8 +27,10 @@ typeList = json.loads(open("types.json").read())
 
 def format(c, f, path):
     c += "\n"
-    if f in typeList:
-        c+= "// " + typeList[f] + "\n"
+
+    c += "// " + demangleFunction(f) + "\n"
+    #if f in typeList:
+    #    c+= "// " + typeList[f] + "\n"
     c += "#pragma GLOBAL_ASM(\"" + path + "\", \""
     c += f + "\")\n"
     return c
