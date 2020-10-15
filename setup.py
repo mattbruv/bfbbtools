@@ -53,7 +53,7 @@ def processFile(path):
 
 a = getAsmFiles()
 test = a[15]
-processFile(test)
+#processFile(test)
 
-#for test in a:
-#    processFile(test)
+for test in a:
+    processFile(test)

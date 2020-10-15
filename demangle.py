@@ -13,6 +13,23 @@ regex = re.compile(r"multiply-defined:\s'(.*)'\sin\s", re.DOTALL)
 ass = ["../bfbbdecomp/tools/mwcc_compiler/2.7/mwasmeppc.exe"]
 ld = ["../bfbbdecomp/tools/mwcc_compiler/2.7/mwldeppc.exe"]
 
+subTypes = [
+    ("char", "int8"),
+    ("short", "int16"),
+    ("int", "int32"),
+    ("long long", "int64"),
+    ("unsigned char", "uint8"),
+    ("unsigned short", "uint16"),
+    ("unsigned int", "uint32"),
+    ("unsigned long long", "uint64"),
+    ("float", "float32"),
+    ("double", "float64"),
+    ("long", "long32"),
+    ("unsigned long", "ulong32"),
+]
+
+subTypes.sort(key=lambda x: -len(x[0]))
+
 def defuckify(name):
     lines = name.splitlines()
     data = []
@@ -26,8 +43,8 @@ def defuckify(name):
     return res
 
 def demangleFunction(functionName):
-    print()
-    print("DEMANGLE:", functionName)
+    #print()
+    #print("DEMANGLE:", functionName)
     asm = asmTemplate.replace("{func}", functionName)
     open("test1.s", "w").write(asm)
     open("test2.s", "w").write(asm)
