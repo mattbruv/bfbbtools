@@ -1,6 +1,7 @@
 from files import *
 from parseasm import *
 import os.path
+import json
 import subprocess
 
 def getCPPPath(path):
@@ -49,11 +50,41 @@ def processFile(path):
     # write to file
     subprocess.run(["python", "inlineasm.py", path.name])
     updateMake(path)
+    return True
 
 
 a = getAsmFiles()
-test = a[15]
-#processFile(test)
+#test = a[16]
 
-for test in a:
-    processFile(test)
+results = {
+    "allSuccess": 0,
+    "allFails": 0,
+    "success": [],
+    "fail": []
+}
+
+results = json.loads(open("auto-log.json").read())
+
+for f in a:
+    res = processFile(f)
+    if not res:
+        continue
+    make = subprocess.call("make", cwd="../bfbbdecomp")
+    if make == 0:
+        subprocess.call("git add *.s *.mk *.cpp", cwd="../bfbbdecomp")
+        subprocess.call("git commit --amend -m \"automatically populate cpp files\"", cwd="../bfbbdecomp")
+        results["success"].append(f.name)
+        results["allSuccess"] += 1
+    else:
+        subprocess.call("git checkout -- *.s *.cpp *.mk", cwd="../bfbbdecomp")
+        subprocess.call("make", cwd="../bfbbdecomp")
+        results["fail"].append(f.name)
+        results["allFails"] += 1
+
+    open("auto-log.json", "w").write(json.dumps(results, indent=4))
+
+    #if make == 0:
+    #    break
+
+#for test in a:
+#    processFile(test)

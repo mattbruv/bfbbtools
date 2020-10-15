@@ -24,11 +24,13 @@ def getSource(name):
     return files[0]
 
 typeList = json.loads(open("types.json").read())
+mangledDict = json.loads(open("demangled.json").read())
 
 def format(c, f, path):
     c += "\n"
 
-    c += "// " + demangleFunction(f) + "\n"
+    if f in mangledDict:
+        c += "// " + mangledDict[f] + "\n"
     #if f in typeList:
     #    c+= "// " + typeList[f] + "\n"
     c += "#pragma GLOBAL_ASM(\"" + path + "\", \""
@@ -44,6 +46,7 @@ def run():
 
     name = sourceFile.name.replace(".s", ".h")
     code = '#include "' + name + '"\n'
+    code += "\n#include <types.h>\n"
     funcs = getAsmFunctions(asm)
     for f in funcs:
         p = str(sourceFile)[14::].replace('\\', '/')
