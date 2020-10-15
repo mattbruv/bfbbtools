@@ -6,6 +6,18 @@ import subprocess
 def getCPPPath(path):
     return Path(str(path).replace("asm\\", "src\\").replace(".s", ".cpp"))
 
+def updateMake(path):
+    spath = str(path)
+    makePath = "../bfbbdecomp/obj_files.mk"
+    makeText = open(makePath).readlines()
+    for i in range(0, len(makeText)):
+        line = makeText[i]
+        if path.name.replace(".s", ".o") in line:
+            add = line.replace("asm/", "src/")
+            makeText[i] = line + add
+            print(line)
+    open(makePath, "w").writelines(makeText)
+
 def processFile(path):
 
     if "Game" not in str(path) and "Core" not in str(path):
@@ -37,6 +49,7 @@ def processFile(path):
 
     # write to file
     subprocess.run(["python", "inlineasm.py", path.name])
+    updateMake(path)
 
 
 a = getAsmFiles()
