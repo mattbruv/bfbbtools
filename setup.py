@@ -63,28 +63,37 @@ results = {
     "fail": []
 }
 
-results = json.loads(open("auto-log.json").read())
+#results = json.loads(open("auto-log.json").read())
+#f = Path("../bfbbdecomp/asm/Core/p2/iCollide.s")
+#processFile(f)
+#exit(0)
+
+ignore = [
+    "xCamera.s",
+    "xFont.s"
+]
 
 for f in a:
+    if f.name in ignore:
+        continue
     res = processFile(f)
     if not res:
         continue
     make = subprocess.call("make", cwd="../bfbbdecomp")
     if make == 0:
         subprocess.call("git add *.s *.mk *.cpp", cwd="../bfbbdecomp")
-        subprocess.call("git commit --amend -m \"automatically populate cpp files\"", cwd="../bfbbdecomp")
-        results["success"].append(f.name)
-        results["allSuccess"] += 1
+        #subprocess.call("git commit --amend -m \"automatically populate cpp files\"", cwd="../bfbbdecomp")
+        #results["success"].append(f.name)
+        #results["allSuccess"] += 1
+        exit(69)
     else:
-        subprocess.call("git checkout -- *.s *.cpp *.mk", cwd="../bfbbdecomp")
-        subprocess.call("make", cwd="../bfbbdecomp")
-        results["fail"].append(f.name)
-        results["allFails"] += 1
+        exit(69)
+        #subprocess.call("git checkout -- *.s *.cpp *.mk", cwd="../bfbbdecomp")
+        #subprocess.call("make", cwd="../bfbbdecomp")
+        #results["fail"].append(f.name)
+        #results["allFails"] += 1
 
-    open("auto-log.json", "w").write(json.dumps(results, indent=4))
-
-    #if make == 0:
-    #    break
+    #open("auto-log.json", "w").write(json.dumps(results, indent=4))
 
 #for test in a:
 #    processFile(test)

@@ -4,6 +4,7 @@ from inline.helpers import *
 from path import asmToSrcPath
 import json
 from demangle import demangleFunction
+from parseasm import parseAsm
 
 desc = "Automatically move and inline assembly into CPP files"
 parser = argparse.ArgumentParser(description=desc)
@@ -40,14 +41,14 @@ def format(c, f, path):
 def run():
     args = parser.parse_args()
     sourceFile = getSource(args.asmFile)
-    asm = open(sourceFile, "r").read()
+    blocks = parseAsm(sourceFile)
 
     out = str(sourceFile).replace("asm\\", "src\\").replace(".s", ".cpp")
 
     name = sourceFile.name.replace(".s", ".h")
     code = '#include "' + name + '"\n'
     code += "\n#include <types.h>\n"
-    funcs = getAsmFunctions(asm)
+    funcs = getAsmFunctions(blocks[".text"])
     for f in funcs:
         p = str(sourceFile)[14::].replace('\\', '/')
         code = format(code, f.replace(':', ''), p)
