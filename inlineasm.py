@@ -27,15 +27,19 @@ def getSource(name):
 typeList = json.loads(open("types.json").read())
 mangledDict = json.loads(open("demangled.json").read())
 
-def format(c, f, path):
+def format(c, f, path, namespace=False):
     c += "\n"
 
     if f in mangledDict:
         c += "// " + mangledDict[f] + "\n"
     #if f in typeList:
     #    c+= "// " + typeList[f] + "\n"
+    if namespace:
+        c += "namespace {\n"
     c += "#pragma GLOBAL_ASM(\"" + path + "\", \""
     c += f + "\")\n"
+    if namespace:
+        c += "}\n"
     return c
 
 def run():
@@ -50,8 +54,11 @@ def run():
     code += "\n#include <types.h>\n"
     funcs = getAsmFunctions(blocks[".text"])
     for f in funcs:
+        isLocal = False
+        if "global " + f.replace(":", "") in blocks[".text"]:
+            isLocal = False
         p = str(sourceFile)[14::].replace('\\', '/')
-        code = format(code, f.replace(':', ''), p)
+        code = format(code, f.replace(':', ''), p, namespace=isLocal)
         pass
     open(out, "w", newline='').write(code)
 

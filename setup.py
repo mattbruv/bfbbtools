@@ -68,9 +68,20 @@ results = {
 #processFile(f)
 #exit(0)
 
+
+# probably have functions which have lbl_ in the names
 ignore = [
     "xCamera.s",
-    "xFont.s"
+    "xFont.s",
+    "xFX.s",
+    "xLaserBolt.s",
+    "zDiscoFloor.s",
+    "zEntCruiseBubble.s",
+    "zEntPlayerBungeeState.s", # probably needs $ substituted
+    "zNPCTypeDutchman.s", # not sure
+    "zNPCTypePrawn.s", # not sure
+    "zTalkBox.s", # not sure
+    "zUI.s", # not sure
 ]
 
 for f in a:
@@ -82,6 +93,7 @@ for f in a:
     make = subprocess.call("make", cwd="../bfbbdecomp")
     if make == 0:
         subprocess.call("git add *.s *.mk *.cpp", cwd="../bfbbdecomp")
+        subprocess.call("git commit -m \"" + f.name + "\"", cwd="../bfbbdecomp")
         #subprocess.call("git commit --amend -m \"automatically populate cpp files\"", cwd="../bfbbdecomp")
         #results["success"].append(f.name)
         #results["allSuccess"] += 1
