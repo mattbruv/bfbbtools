@@ -1,6 +1,9 @@
 from parseasm import parseAsm
 from symbols import getSymbols
 import re
+from pathlib import Path
+import subprocess
+from files import getAsmFiles
 
 # zNPCTypeBossSandy.cpp
 
@@ -65,21 +68,55 @@ def getAddressLabel(lines, address):
     return name
 
 
+def getFullLine(lines, search):
+    for line in lines:
+        if search in line:
+            return line
+    return None
+
+
 def fixAssembly(path):
     asmText = open(path).read()
     blocks = parseAsm(path)
+    if ".text" not in blocks:
+        return
     textBlock = blocks[".text"]
+    newBlock = blocks[".text"]
     lines = textBlock.splitlines()
     funcs = getAllAsmFunctions(lines)
-    i = 0
     for f in funcs:
+        if f["address"] not in textBlock:
+            print("Already Decompiled", f["name"])
+            continue
         lbl = getAddressLabel(lines, f["address"])
-        print(f["address"], lbl, f["name"])
-    print(i)
+        if lbl != None and lbl == f["name"]:
+            continue
+        print(f["address"], f["scope"], lbl, f["name"])
+        if lbl == None:
+            line = getFullLine(lines, "/* " + f["address"])
+            newLabel = "\n" + f["name"] + ":\n"
+            newBlock = newBlock.replace(line, newLabel + line)
+            print(line)
+            pass
+        else:
+            line = getFullLine(lines, lbl + ":")
+            newBlock = newBlock.replace(line, "\n" + line)
+            newBlock = newBlock.replace(lbl, f["name"])
+            pass
+    asmText = asmText.replace(textBlock, newBlock)
+    open(path, "w").write(asmText)
 
 
 def run():
-    fixAssembly("../bfbbdecomp/asm/Game/zNPCTypeBossSandy.s")
+    asms = getAsmFiles()
+    for f in asms:
+        if "Game" not in str(f) and "Core" not in str(f):
+            continue
+        print(f)
+        #path = Path("../bfbbdecomp/asm/Game/zNPCTypeBossSandy.s")
+        #path = Path(f)
+        fixAssembly(f)
+        #subprocess.run(["python", "inlineasm.py", path.name])
 
 
 run()
