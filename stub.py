@@ -50,19 +50,36 @@ def getAllAsmFunctions(lines):
     return funcs
 
 
+def getAddressLabel(lines, address):
+    name = None
+    found = False
+    for line in reversed(lines):
+        if not found:
+            if "/* " + address in line:
+                found = True
+            continue
+        if isCodeLine(line):
+            break
+        if ":" in line:
+            return line.replace(":", "")
+    return name
+
+
 def fixAssembly(path):
+    asmText = open(path).read()
     blocks = parseAsm(path)
-    lines = blocks[".text"].splitlines()
+    textBlock = blocks[".text"]
+    lines = textBlock.splitlines()
     funcs = getAllAsmFunctions(lines)
-    i = 1
+    i = 0
     for f in funcs:
-        print(i, f["address"], f["scope"], f["name"])
-        i += 1
+        lbl = getAddressLabel(lines, f["address"])
+        print(f["address"], lbl, f["name"])
+    print(i)
 
 
 def run():
     fixAssembly("../bfbbdecomp/asm/Game/zNPCTypeBossSandy.s")
-    print("Hello world!")
 
 
 run()
