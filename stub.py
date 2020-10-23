@@ -130,10 +130,31 @@ def fixAssembly(path):
             open(f, "w").write(text)
 
 
+def debug(path):
+    asmText = open(path).read()
+    blocks = parseAsm(path)
+    if ".text" not in blocks:
+        return
+    textBlock = blocks[".text"]
+    newBlock = blocks[".text"]
+    lines = textBlock.splitlines()
+    funcs = getAllAsmFunctions(lines)
+    i = 0
+    for f in funcs:
+        print(f)
+        i += 1
+    print(i)
+
+
 def run(path):
     asms = getAsmFiles()
     fixAssembly(path)
     subprocess.run(["python", "inlineasm.py", path.name])
+
+
+p = Path("..\\bfbbdecomp\\asm\\Core\\x\\xHud.s")
+# debug(p)
+run(Path("..\\bfbbdecomp\\asm\\Core\\x\\xHud.s"))
 
 
 excludeFiles = [
