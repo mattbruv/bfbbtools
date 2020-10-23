@@ -92,9 +92,12 @@ def fixAssembly(path):
             print("Already Decompiled", funcName)
             continue
         lbl = getAddressLabel(lines, f["address"])
+
         if lbl != None and lbl == funcName:
             continue
+
         print(f["address"], f["scope"], lbl, funcName)
+
         if lbl == None:
             line = getFullLine(lines, "/* " + f["address"])
             newLabel = "\n" + funcName + ":\n"

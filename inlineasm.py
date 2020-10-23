@@ -32,11 +32,12 @@ typeList = json.loads(open("types.json").read())
 mangledDict = json.loads(open("demangled.json").read())
 
 
-def format(c, f, path, namespace=False):
+def format(c, f, path, addr, namespace=False):
     c += "\n"
 
-    if f in mangledDict:
-        c += "// " + mangledDict[f] + "\n"
+    # if f in mangledDict:
+    #    c += "// " + mangledDict[f] + "\n"
+    c += "// func_" + addr + "\n"
     # if f in typeList:
     #    c+= "// " + typeList[f] + "\n"
     if namespace:
@@ -46,6 +47,22 @@ def format(c, f, path, namespace=False):
     if namespace:
         c += "}\n"
     return c
+
+
+def getAddress(lines, funcName):
+    addr = "?"
+    found = False
+    for line in lines:
+        if funcName in line:
+            found = True
+        if not found:
+            continue
+        data = line.split(" ")
+        if len(data) < 2:
+            continue
+        if data[0] == "/*" and len(data[1]) == 8:
+            return data[1]
+    return addr
 
 
 def run():
@@ -64,7 +81,8 @@ def run():
         if "global " + f.replace(":", "") in blocks[".text"]:
             isLocal = False
         p = str(sourceFile)[14::].replace('\\', '/')
-        code = format(code, f.replace(':', ''), p, namespace=isLocal)
+        addr = getAddress(blocks[".text"].splitlines(), f)
+        code = format(code, f.replace(':', ''), p, addr, namespace=isLocal)
         pass
     open(out, "w", newline='').write(code)
 

@@ -1,8 +1,9 @@
 import re
-from sanitize import desanitize
+from sanitize import desanitizeLabel
 from files import getAsmFiles
 
 labelRegex = r".+:"
+
 
 def getLabels(fileText, strip=False):
     matches = re.findall(labelRegex, fileText)
@@ -10,9 +11,11 @@ def getLabels(fileText, strip=False):
         matches = list(map(lambda x: x.replace(":", ""), matches))
     return matches
 
+
 def getAsmFunctions(fileText, strip=False):
     matches = getLabels(fileText, strip)
     return list(filter(lambda x: "lbl_" not in x, matches))
+
 
 def getAsmFunctionBlock(fileText, label):
     data = []
@@ -27,12 +30,14 @@ def getAsmFunctionBlock(fileText, label):
                 break
     return data
 
+
 def getBlockLabels(block):
     labels = set()
     for line in block:
         for label in extractLabels(line):
             labels.add(label)
     return labels
+
 
 def getBlockFunctionCalls(block):
     labels = set()
@@ -43,10 +48,11 @@ def getBlockFunctionCalls(block):
 
 
 labelRegexes = [
-    r"\bb.+ (.+)$", # after branch instructions
-    r"\ (\D\S+)@(ha|l)$", # before @ha, @l
-    r"(\w+)-_" # before -SDA
+    r"\bb.+ (.+)$",  # after branch instructions
+    r"\ (\D\S+)@(ha|l)$",  # before @ha, @l
+    r"(\w+)-_"  # before -SDA
 ]
+
 
 def extractFunctionCalls(line):
     labels = set()
@@ -57,6 +63,7 @@ def extractFunctionCalls(line):
         else:
             labels.add(m)
     return labels
+
 
 def extractLabels(line):
     labels = set()
@@ -69,6 +76,7 @@ def extractLabels(line):
                 labels.add(m)
     return labels
 
+
 def externBlock(lines):
     block = """extern "C" {
     {lines}
@@ -76,11 +84,14 @@ def externBlock(lines):
 """.replace("{lines}", "\n    ".join(lines))
     return block
 
+
 def funcString(funcName):
     return "extern void " + funcName + "();"
 
+
 def labelString(labelName):
     return "extern int " + labelName + ";"
+
 
 def blockToCPP(name, block):
     name = name.replace(":", "")
@@ -95,8 +106,10 @@ def blockToCPP(name, block):
     code += "}\n"
     return code
 
+
 def getSource(name):
-    files = list(filter(lambda x: name.lower() in x.name.lower(), getAsmFiles()))
+    files = list(filter(lambda x: name.lower()
+                        in x.name.lower(), getAsmFiles()))
     if len(files) > 1:
         print("Error: Ambiguous filename:", name)
         print("Please specify filename in greater detail.")
@@ -112,19 +125,23 @@ def getSource(name):
 def filterBlockCode(block):
     return list(filter(lambda x: "/*" in x, block))
 
+
 def codeLineToBytes(line):
     d = line.split()
     b = "0x" + "".join(d[3:7])
     return b
 
+
 def blockToBytes(block):
     code = filterBlockCode(block)
     return list(map(codeLineToBytes, code))
+
 
 funcTemplate = """asm void {name}() {
     nofralloc
     {data}
 }"""
+
 
 def writeFunctions(source, funcList):
     source += """extern "C" {\n"""
@@ -133,8 +150,10 @@ def writeFunctions(source, funcList):
     source += "}\n"
     return source
 
+
 def bytesToString(byteLine):
     return "opword" + " " + byteLine
+
 
 def writeCode(source, funcName, byteLines):
     source += "\n"
