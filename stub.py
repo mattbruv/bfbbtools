@@ -86,6 +86,8 @@ def fixAssembly(path):
     lines = textBlock.splitlines()
     funcs = getAllAsmFunctions(lines)
 
+    globalRenames = []
+
     for f in funcs:
         funcName = sanitizeLabel(f["name"])
         if f["address"] not in textBlock:
@@ -105,17 +107,33 @@ def fixAssembly(path):
             print(line)
             pass
         else:
+            # check to see if this is a global label
+            if ".global " + lbl in textBlock:
+                globalRenames.append({
+                    "old": lbl,
+                    "new": funcName
+                })
             line = getFullLine(lines, lbl + ":")
             newBlock = newBlock.replace(line, "\n" + line)
             newBlock = newBlock.replace(lbl, funcName)
             pass
+
     asmText = asmText.replace(textBlock, newBlock)
     open(path, "w").write(asmText)
+
+    # replace global labels
+    if len(globalRenames) > 0:
+        files = getAsmFiles()
+        for f in files:
+            text = open(f).read()
+            for r in globalRenames:
+                text = text.replace(r["old"], r["new"])
+            open(f, "w").write(text)
 
 
 def run():
     asms = getAsmFiles()
-    path = Path("../bfbbdecomp/asm/Game/zNPCTypeBossPlankton.s")
+    path = Path("../bfbbdecomp/asm/Game/zEntPlayer.s")
     fixAssembly(path)
     subprocess.run(["python", "inlineasm.py", path.name])
 
