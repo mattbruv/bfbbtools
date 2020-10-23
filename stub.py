@@ -1,12 +1,11 @@
 from parseasm import parseAsm
 from symbols import getSymbols
 import re
+import json
 from pathlib import Path
 import subprocess
 from files import getAsmFiles
 from sanitize import sanitizeLabel, desanitizeLabel
-
-# zNPCTypeBossSandy.cpp
 
 
 def isCodeLine(line):
@@ -131,11 +130,71 @@ def fixAssembly(path):
             open(f, "w").write(text)
 
 
-def run():
+def run(path):
     asms = getAsmFiles()
-    path = Path("../bfbbdecomp/asm/Game/zEntPlayer.s")
     fixAssembly(path)
     subprocess.run(["python", "inlineasm.py", path.name])
 
 
-run()
+excludeFiles = [
+    "iCollideFast.s",
+    "iDraw.s",
+    "iMath.s",
+    "xCounter.s",
+    "xBase.s",
+    "xEnv.s",
+    "xEvent.s",
+    "xRenderState.s",
+    "xString.s",
+    "zCamMarker.s",
+    "zEntPlayer.s",
+    "zEvent.s",
+    "zNPCTypeBoss.s",
+    "zParEmitter.s",
+    "zPortal.s",
+]
+
+
+def isFileWeCareAbout(path):
+    if "Core" not in str(path) and "Game" not in str(path):
+        return False
+    if path.name in excludeFiles:
+        return False
+    return True
+
+
+"""
+info = json.loads(open("process.json").read())
+print(info)
+
+for f in info["todo"]:
+    path = Path(f)
+    if str(path) in info["done"] or str(path) in info["fail"]:
+        continue
+    run(path)
+    make = subprocess.call("make", cwd="../bfbbdecomp")
+    if make == 0:
+        subprocess.call("git add *", cwd="../bfbbdecomp")
+        subprocess.call("git commit -m \"" + path.name +
+                        "\"", cwd="../bfbbdecomp")
+        info["done"].append(str(path))
+    else:
+        subprocess.call("git reset --hard", cwd="../bfbbdecomp")
+        info["fail"].append(str(path))
+
+    open("process.json", "w").write(json.dumps(info, indent=4))
+    if make != 0:
+        break
+
+asms = filter(isFileWeCareAbout, getAsmFiles())
+print(asms)
+
+status = {
+    "todo": []
+}
+
+for f in asms:
+    status["todo"].append(str(f))
+
+open("process.json", "w").write(json.dumps(status, indent=4))
+"""
