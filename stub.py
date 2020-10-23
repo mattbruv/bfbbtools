@@ -4,6 +4,7 @@ import re
 from pathlib import Path
 import subprocess
 from files import getAsmFiles
+from sanitize import sanitizeLabel, desanitizeLabel
 
 # zNPCTypeBossSandy.cpp
 
@@ -84,24 +85,26 @@ def fixAssembly(path):
     newBlock = blocks[".text"]
     lines = textBlock.splitlines()
     funcs = getAllAsmFunctions(lines)
+
     for f in funcs:
+        funcName = sanitizeLabel(f["name"])
         if f["address"] not in textBlock:
-            print("Already Decompiled", f["name"])
+            print("Already Decompiled", funcName)
             continue
         lbl = getAddressLabel(lines, f["address"])
-        if lbl != None and lbl == f["name"]:
+        if lbl != None and lbl == funcName:
             continue
-        print(f["address"], f["scope"], lbl, f["name"])
+        print(f["address"], f["scope"], lbl, funcName)
         if lbl == None:
             line = getFullLine(lines, "/* " + f["address"])
-            newLabel = "\n" + f["name"] + ":\n"
+            newLabel = "\n" + funcName + ":\n"
             newBlock = newBlock.replace(line, newLabel + line)
             print(line)
             pass
         else:
             line = getFullLine(lines, lbl + ":")
             newBlock = newBlock.replace(line, "\n" + line)
-            newBlock = newBlock.replace(lbl, f["name"])
+            newBlock = newBlock.replace(lbl, funcName)
             pass
     asmText = asmText.replace(textBlock, newBlock)
     open(path, "w").write(asmText)
@@ -109,14 +112,9 @@ def fixAssembly(path):
 
 def run():
     asms = getAsmFiles()
-    for f in asms:
-        if "Game" not in str(f) and "Core" not in str(f):
-            continue
-        print(f)
-        #path = Path("../bfbbdecomp/asm/Game/zNPCTypeBossSandy.s")
-        #path = Path(f)
-        fixAssembly(f)
-        #subprocess.run(["python", "inlineasm.py", path.name])
+    path = Path("../bfbbdecomp/asm/Game/zNPCTypeBossPlankton.s")
+    fixAssembly(path)
+    subprocess.run(["python", "inlineasm.py", path.name])
 
 
 run()
