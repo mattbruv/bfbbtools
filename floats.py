@@ -97,6 +97,8 @@ for instr in floatInstructions:
     label = instr + " "
     if len(funcs) >= limit:
         label += "(first " + str(limit) + " functions)"
+    elif len(funcs) == 0:
+        label += "(no functions use this)"
     else:
         label += "(only " + str(len(funcs)) + " functions)"
 
