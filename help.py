@@ -1,3 +1,5 @@
+import struct
+
 cheats = [
     "sCheatAddShiny",
     "sCheatAddSpatulas",
@@ -24,38 +26,28 @@ cheats = [
 ]
 
 rom = open("../bfbbdecomp/baserom.dol", "rb")
-startAt = 0x28C1E4
+startAt = 0x28C724
 
 rom.seek(startAt)
-at = 0x8028f204
 
 source = ""
 
-charmap = {
-    "0x40000": "Y",
-    "0x20000": "X",
-    "0x0": "0",
-}
-
 for cheat in cheats:
-    code = []
-    print(hex(at), cheat)
-    for i in range(0, 16):
-        data = rom.read(4)
-        at += 4
-        button = int.from_bytes(data, byteorder="big")
-        code.append(button)
-    print(cheat, code)
-    source += "static uint32 " + cheat + "[16] = {"
-    source += "\n"
-    c = ','.join(map(lambda x: charmap[hex(x)], code))
-    source += c
-    source += "\n"
-    source += "};"
-    source += "\n"
+    print(cheat)
+    key_code = struct.unpack(">I", rom.read(4))[0]
+    callback = struct.unpack(">I", rom.read(4))[0]
+    flg_keep = struct.unpack(">I", rom.read(4))[0]
+    flg_mode = struct.unpack(">I", rom.read(4))[0]
+    print(hex(key_code), hex(callback), hex(flg_keep), hex(flg_mode))
+    source += "{"
+    source += cheat + ", "
+    source += "NULL, "
+    source += hex(flg_keep) + ", "
+    source += str(flg_mode) + "}, "
+    source += "// " + hex(callback) + "\n"
 
 cpp = "../bfbbdecomp/src/Game/zGameExtras.cpp"
 text = open(cpp, "r").read()
 
-text = text.replace("// REPLACE ME", source)
+text = text.replace("// CHEATLIST", source)
 open(cpp, "w").write(text)
