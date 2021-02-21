@@ -34,4 +34,4 @@ for match in matches:
     name = sym["name"].replace("@", "_")
     print(sym, name)
     source = source.replace("lbl_" + match, name)
-open(asmPath, "w").write(source)
+open(asmPath, "w", newline="").write(source)
