@@ -56,14 +56,17 @@ def cleanFile(asm, symbols, name):
 
             cppText = "/* cpp: " + unmangled + " */\n" if unmangled else ""
 
-            begin = cppText + ".fn " + n + ", " + scope
+            begin = cppText + ".fn " + n + ", " + scope + ", " + str(
+                sym["size"]) + ""
             endText = ".endfn " + n + "\n"
             text = text.replace(n + ":", begin)
+            """
             try:
                 endLine = getCodeLine(endAddr, text)
                 text = text.replace(endLine, endLine + endText)
             except:
                 pass
+            """
             #print(n, addr, size, endAddr, endLine)
 
     open(data["path"], "w+", newline="\n").write(text)
