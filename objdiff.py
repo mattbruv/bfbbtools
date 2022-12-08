@@ -2,6 +2,7 @@ from symbols import getSymbols
 from files import getAsmFiles
 from sanitize import sanitizeLabel, desanitizeLabel
 import re
+import subprocess
 
 
 def isGameCode(symbol):
@@ -30,7 +31,8 @@ def cleanFile(asm, symbols, name):
 
     for sym in symbols:
         n = sym["name"]
-        # n = #sanitizeLabel(n)
+        realName = n
+        n = sanitizeLabel(n)
         addr = sym["address"]
         start = int(addr, 16)
         size = sym["size"]
@@ -38,10 +40,23 @@ def cleanFile(asm, symbols, name):
         endAddr = "{:x}".format(end).upper()
         endAddr = endAddr.rjust(8, "0")
         scope = sym["scope"].lower()
+
         if n + ":" in text:
+
+            unmangled = ""
+
+            try:
+                unmangled = subprocess.check_output(
+                    ["../bfbb/cwdemangle-windows-x86_64.exe",
+                     realName]).decode("utf-8").strip()
+            except:
+                pass
+
             text = text.replace(".global " + n, "")
 
-            begin = ".fn " + n + ", " + scope
+            cppText = "/* cpp: " + unmangled + " */\n" if unmangled else ""
+
+            begin = cppText + ".fn " + n + ", " + scope
             endText = ".endfn " + n + "\n"
             text = text.replace(n + ":", begin)
             endLine = getCodeLine(endAddr, text)
