@@ -59,8 +59,11 @@ def cleanFile(asm, symbols, name):
             begin = cppText + ".fn " + n + ", " + scope
             endText = ".endfn " + n + "\n"
             text = text.replace(n + ":", begin)
-            endLine = getCodeLine(endAddr, text)
-            text = text.replace(endLine, endLine + endText)
+            try:
+                endLine = getCodeLine(endAddr, text)
+                text = text.replace(endLine, endLine + endText)
+            except:
+                pass
             #print(n, addr, size, endAddr, endLine)
 
     open(data["path"], "w+", newline="\n").write(text)
@@ -68,5 +71,10 @@ def cleanFile(asm, symbols, name):
 
 symbols = list(filter(isGameCode, getSymbols()))
 asm = getAsm()
+"""
+for f in asm:
+    print(f["name"])
+    cleanFile(asm, symbols, f["name"])
+"""
 
 cleanFile(asm, symbols, "zGameExtras.s")
