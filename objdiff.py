@@ -29,6 +29,10 @@ def cleanFile(asm, symbols, name):
     data = next(x for x in asm if x["name"] == name)
     text = data["text"]
 
+    # sort from longest to shortest
+    # because some names overlap
+    symbols = sorted(symbols, key=lambda s: len(s["name"]), reverse=True)
+
     for sym in symbols:
         n = sym["name"]
         realName = n
@@ -41,33 +45,42 @@ def cleanFile(asm, symbols, name):
         endAddr = endAddr.rjust(8, "0")
         scope = sym["scope"].lower()
 
-        if n + ":" in text:
+        local = "l_" + sym["address"][-4::].lower() + "_"
 
-            unmangled = ""
+        for n in [local + n, n]:
+            print(n)
+            Found = False
+            if n + ":" in text:
+                print("found", n)
+                Found = True
 
-            try:
-                unmangled = subprocess.check_output(
-                    ["../bfbb/cwdemangle-windows-x86_64.exe",
-                     realName]).decode("utf-8").strip()
-            except:
-                pass
+                unmangled = ""
 
-            text = text.replace(".global " + n, "")
+                try:
+                    unmangled = subprocess.check_output(
+                        ["../bfbb/cwdemangle-windows-x86_64.exe",
+                         realName]).decode("utf-8").strip()
+                except:
+                    pass
 
-            cppText = "/* cpp: " + unmangled + " */\n" if unmangled else ""
+                text = text.replace(".global " + n, "")
 
-            begin = cppText + ".fn " + n + ", " + scope + ", " + str(
-                sym["size"]) + ""
-            endText = ".endfn " + n + "\n"
-            text = text.replace(n + ":", begin)
-            """
-            try:
-                endLine = getCodeLine(endAddr, text)
-                text = text.replace(endLine, endLine + endText)
-            except:
-                pass
-            """
-            #print(n, addr, size, endAddr, endLine)
+                cppText = "/* cpp: " + unmangled + " */\n" if unmangled else ""
+
+                begin = cppText + ".fn " + n + ", " + scope + ", " + str(
+                    sym["size"]) + ""
+                #endText = ".endfn " + n + "\n"
+                text = text.replace(n + ":", begin)
+                """
+                try:
+                    endLine = getCodeLine(endAddr, text)
+                    text = text.replace(endLine, endLine + endText)
+                except:
+                    pass
+                """
+                #print(n, addr, size, endAddr, endLine)
+            if Found:
+                break
 
     open(data["path"], "w+", newline="\n").write(text)
 
@@ -80,4 +93,4 @@ for f in asm:
     cleanFile(asm, symbols, f["name"])
 """
 
-cleanFile(asm, symbols, "zGameExtras.s")
+cleanFile(asm, symbols, "zNPCTypeBossSandy.s")
